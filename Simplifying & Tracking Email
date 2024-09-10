@@ -1,0 +1,62 @@
+# Author: Zack Peters
+# Date : 9/15/2022
+# Function: The function of this script is to have the user paste a link and a list of recipients to email, the script sends the email to all listed individually and then tracks
+# who has clicked the link 
+
+import smtplib
+from flask import Flask, redirect, request
+import datetime
+import os
+
+# Flask app for tracking link clicks
+app = Flask(__name__)
+
+# Email sending function
+def send_email(receiver_email, tracking_link):
+    sender_email = "your_email@example.com"
+    password = "your_email_password"
+
+    # Set up the email content
+    subject = "Tracked Link in Email"
+    body = f"Click the following link to visit the destination: {tracking_link}"
+    message = f"Subject: {subject}\n\n{body}"
+
+    try:
+        # Connect to the SMTP server and send the email
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message)
+        server.quit()
+        print(f"Email sent to {receiver_email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+# Define a route in Flask to track link clicks
+@app.route('/track_click')
+def track_click():
+    # Extract query parameters (e.g., the email address)
+    user_email = request.args.get('email', 'unknown')
+    
+    # Log the click with the email and timestamp
+    with open("click_logs.txt", "a") as log_file:
+        log_file.write(f"Email: {user_email} clicked the link at {datetime.datetime.now()}\n")
+    
+    # Redirect the user to the actual destination
+    return redirect("https://placeholder-link.com")  # Replace with actual destination
+
+# Main function to send the email and start the Flask server
+if __name__ == "__main__":
+    # Email to which we want to send the tracking link
+    receiver_email = "recipient@example.com"
+
+    # The URL to the tracking link (this points to the Flask server running locally or deployed)
+    tracking_link = "http://127.0.0.1:5000/track_click?email=" + receiver_email
+
+    # Send an email with the tracking link
+    send_email(receiver_email, tracking_link)
+
+    # Run the Flask app to handle link tracking
+    print("Starting Flask server for link tracking...")
+    app.run(debug=True)
+
